@@ -2,11 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { playwrightScraper } from '@/services/playwrightScraper';
 
-/* 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const maxDuration = 800; // 800 seconds
-*/
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,13 +15,19 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.info(`[Test] Starting Playwright scrape for ${url}`, '');
+    console.info(`[Test] Starting Playwright scrape for ${url}`);
     const scrapedData = await playwrightScraper(url);
+
+    // Validate scraper response structure
+    if (!scrapedData || typeof scrapedData !== 'object') {
+      throw new Error('Invalid scraper response');
+    }
+
     const { content: scrapedContent, html: scrapedHtml } = scrapedData;
 
-    console.info(`[Test] Scrape completed. Content length: ${scrapedContent.length}`, '');
+    console.info(`[Test] Scrape completed. Content length: ${scrapedContent.length}`);
 
-    // Return immediately (fire-and-forget)
+
     return NextResponse.json(
       { 
         content: scrapedContent,
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error: any) {
-    console.error?.('[Test] TestAPI failed', 'test-playwright', { error });
+    console.error?.('[test-playwright] TestAPI failed', { error });
 
     return NextResponse.json(
       { error: 'Internal Server Error' },

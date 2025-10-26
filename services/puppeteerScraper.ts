@@ -57,7 +57,7 @@ async function getBrowser(): Promise<Browser> {
       const pptr = (await import('puppeteer')).default as unknown as {
         launch: (opts?: any) => Promise<Browser>;
       };
-      browser = await pptr.launch({ headless: true, ignoreHTTPSErrors: true, });
+      browser = await pptr.launch({ headless: true });
     }
 
     browser.on('disconnected', () => {
@@ -91,7 +91,7 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
     timeoutHandle = setTimeout(() => {
       isTimedOut = true;
       const error = new Error(`Scraping timed out after ${timeoutMs}ms`);
-      console.error(`[puppeteer-scraper] Timeout reached for ${url}`, 'puppeteer-scraper');
+      console.error(`[puppeteer-scraper] Timeout reached for ${url}`);
 
       // Force cleanup
       Promise.all([
@@ -104,7 +104,7 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
 
     try {
       browser = await getBrowser();
-      console.info(`[puppeteer-scraper] Browser launched successfully`, 'puppeteer-scraper');
+      console.info(`[puppeteer-scraper] Browser launched successfully`);
 
       context = await browser.createBrowserContext();
 
@@ -131,7 +131,7 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
       try {
         await page.waitForNetworkIdle({ idleTime: 1000, timeout: 10_000 });
       } catch {
-        console.warn(`[puppeteer-scraper] Network idle timeout (non-fatal)`, 'puppeteer-scraper');
+        console.warn(`[puppeteer-scraper] Network idle timeout (non-fatal)`);
       }
 
       if (isTimedOut) return;
@@ -151,7 +151,7 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
 
       if (isTimedOut) return;
 
-      console.info(`[puppeteer-scraper] Success - ${url}`, 'puppeteer-scraper');
+      console.info(`[puppeteer-scraper] Success - ${url}`);
 
       // Clear timeout and resolve
       if (timeoutHandle) {
@@ -177,7 +177,6 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
       } catch (error) {
         console.error(
           `[puppeteer-scraper] Error closing page/context`,
-          'puppeteer-scraper',
           { error }
         );
       }
@@ -193,8 +192,7 @@ export async function puppeteerScraper(inputUrl: string): Promise<ScrapeResult> 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       console.info(
-        `[puppeteer-scraper] Attempt ${attempt}/${MAX_RETRIES} - ${normalizedUrl}`,
-        'puppeteer-scraper'
+        `[puppeteer-scraper] Attempt ${attempt}/${MAX_RETRIES} - ${normalizedUrl}`
       );
 
       const result = await scrapeWithTimeout(normalizedUrl, OVERALL_TIMEOUT_MS);
@@ -203,7 +201,6 @@ export async function puppeteerScraper(inputUrl: string): Promise<ScrapeResult> 
 
       console.warn(
         `[puppeteer-scraper] Attempt ${attempt}/${MAX_RETRIES} failed - ${normalizedUrl}`,
-        'puppeteer-scraper',
         { error: error?.message }
       );
 
@@ -217,16 +214,14 @@ export async function puppeteerScraper(inputUrl: string): Promise<ScrapeResult> 
       // Do not retry on overall timeout
       if (error?.message?.includes('timed out')) {
         console.error(
-          `[puppeteer-scraper] Timeout after ${OVERALL_TIMEOUT_MS}ms, not retrying`,
-          'puppeteer-scraper'
+          `[puppeteer-scraper] Timeout after ${OVERALL_TIMEOUT_MS}ms, not retrying`
         );
         break;
       }
 
       if (attempt < MAX_RETRIES) {
         console.info(
-          `[puppeteer-scraper] Waiting ${RETRY_DELAY_MS}ms before retry`,
-          'puppeteer-scraper'
+          `[puppeteer-scraper] Waiting ${RETRY_DELAY_MS}ms before retry`
         );
         await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
       }

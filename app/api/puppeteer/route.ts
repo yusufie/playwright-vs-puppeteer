@@ -2,11 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { puppeteerScraper } from '@/services/puppeteerScraper';
 
-/*
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const maxDuration = 800; // 800 seconds
-*/
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,13 +15,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.info(`[Test] Starting Puppeteer scrape for ${url}`, '');
+    console.info(`[Test] Starting Puppeteer scrape for ${url}`);
     const scrapedData = await puppeteerScraper(url);
+
+    // Validate scraper response structure
+    if (!scrapedData || typeof scrapedData !== 'object') {
+      throw new Error('Invalid scraper response');
+    }
+
     const { content: scrapedContent, html: scrapedHtml } = scrapedData;
 
-    console.info(`[Test] Scrape completed. Content length: ${scrapedContent.length}`, '');
+    console.info(`[Test] Scrape completed. Content length: ${scrapedContent.length}`);
 
-    // Return immediately (fire-and-forget)
     return NextResponse.json(
       { 
         content: scrapedContent,
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error: any) {
-    console.error?.('[Test] TestAPI failed', 'test-puppeteer', { error });
+    console.error?.('[test-puppeteer] TestAPI failed', { error });
 
     return NextResponse.json(
       { error: 'Internal Server Error' },

@@ -85,7 +85,7 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
     timeoutHandle = setTimeout(() => {
       isTimedOut = true;
       const error = new Error(`Scraping timed out after ${timeoutMs}ms`);
-      console.error(`[playwright-scraper] Timeout reached for ${url}`, 'playwright-scraper');
+      console.error(`[playwright-scraper] Timeout reached for ${url}`);
       
       // Force cleanup
       Promise.all([
@@ -98,7 +98,7 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
 
     try {
       browser = await getBrowser();
-      console.info(`[playwright-scraper] Browser launched successfully`, 'playwright-scraper');
+      console.info(`[playwright-scraper] Browser launched successfully`);
 
       context = await browser.newContext({
         viewport: { width: 1920, height: 1080 },
@@ -122,7 +122,7 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
 
       // Shorter network idle
       await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {
-        console.warn(`[playwright-scraper] Network idle timeout (non-fatal)`, 'playwright-scraper');
+        console.warn(`[playwright-scraper] Network idle timeout (non-fatal)`);
       });
 
       if (isTimedOut) return;
@@ -142,7 +142,7 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
 
       if (isTimedOut) return;
 
-      console.info(`[playwright-scraper] Success - ${url}`, 'playwright-scraper');
+      console.info(`[playwright-scraper] Success - ${url}`);
 
       // Clear timeout and resolve
       if (timeoutHandle) {
@@ -167,7 +167,7 @@ async function scrapeWithTimeout(url: string, timeoutMs: number): Promise<Scrape
         await page?.close().catch(() => {});
         await context?.close().catch(() => {});
       } catch (error) {
-        console.error(`[playwright-scraper] Error closing page/context`, 'playwright-scraper', { error });
+        console.error(`[playwright-scraper] Error closing page/context`, { error });
       }
     }
   });
@@ -179,7 +179,7 @@ export async function playwrightScraper(url: string): Promise<ScrapeResult> {
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      console.info(`[playwright-scraper] Attempt ${attempt}/${MAX_RETRIES} - ${normalizedUrl}`, 'playwright-scraper');
+      console.info(`[playwright-scraper] Attempt ${attempt}/${MAX_RETRIES} - ${normalizedUrl}`);
 
       const result = await scrapeWithTimeout(normalizedUrl, OVERALL_TIMEOUT_MS);
       return result;
@@ -187,7 +187,6 @@ export async function playwrightScraper(url: string): Promise<ScrapeResult> {
     } catch (error: any) {
       console.warn(
         `[playwright-scraper] Attempt ${attempt}/${MAX_RETRIES} failed - ${normalizedUrl}`,
-        'playwright-scraper',
         { error: error?.message }
       );
 
@@ -199,12 +198,12 @@ export async function playwrightScraper(url: string): Promise<ScrapeResult> {
 
       // Don't retry on timeout - it's likely a bad site
       if (error?.message?.includes('timed out')) {
-        console.error(`[playwright-scraper] Timeout after ${OVERALL_TIMEOUT_MS}ms, not retrying`, 'playwright-scraper');
+        console.error(`[playwright-scraper] Timeout after ${OVERALL_TIMEOUT_MS}ms, not retrying`);
         break;
       }
 
       if (attempt < MAX_RETRIES) {
-        console.info(`[playwright-scraper] Waiting ${RETRY_DELAY_MS}ms before retry`, 'playwright-scraper');
+        console.info(`[playwright-scraper] Waiting ${RETRY_DELAY_MS}ms before retry`);
         await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
       }
     }
